@@ -113,16 +113,14 @@ def play_audio_with_mouth_movement(audio_file):
     elapsed_time = 0
     
     while elapsed_time < total_time:
-        print("Open mouth")
-        print("Elapsed time: ", elapsed_time)
-        print("Total time: ", total_time)
+       
         # Open mouth
         start_mouth()
-        time.sleep(0.1)  # Keep mouth open for 0.1 seconds
+        time.sleep(1)  # Keep mouth open for 0.1 seconds
         
         # Close mouth
         stop_mouth()
-        time.sleep(0.1)  # Keep mouth closed for 0.1 seconds
+        time.sleep(1)  # Keep mouth closed for 0.1 seconds
         
         elapsed_time += 0.2  # Total time for one cycle is 0.2 seconds
 
