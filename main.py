@@ -164,16 +164,17 @@ def get_chatgpt_audio_response(prompt):
         }
         ]
     )
+   
     wav_bytes = base64.b64decode(completion.choices[0].message.audio.data)
     
-    # Convert WAV to MP3
-    wav_audio = AudioSegment.from_wav(io.BytesIO(wav_bytes))
+    with open("response.wav", "wb") as f:
+        f.write(wav_bytes)
     
-    # Export as MP3
-    mp3_filename = "response.mp3"
-    wav_audio.export(mp3_filename, format="mp3")
+    # # Export as MP3
+    # mp3_filename = "response.mp3"
+    # wav_audio.export(mp3_filename, format="mp3")
     
-    return mp3_filename
+    # return mp3_filename
         
     # play the audio on raspberry pi
     # os.system("afplay response.wav")
@@ -182,7 +183,8 @@ def get_chatgpt_audio_response(prompt):
 def play_audio(audio_file):
     
     # os.system(f"aplay {audio_file}")
-    os.system(f"mpg321 {audio_file}")
+    # os.system(f"mpg321 {audio_file}")
+    os.system(f"afplay {audio_file}")
 
 
 
@@ -268,7 +270,7 @@ def main():
         start_mouth()
         
         # Play audio response
-        play_audio("response.mp3")
+        play_audio("response.wav")
         
         # Stop mouth and head movement after audio finishes
         stop_mouth()
