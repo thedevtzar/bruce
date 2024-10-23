@@ -5,6 +5,8 @@ import requests
 import base64
 import RPi.GPIO as GPIO
 import time
+from pydub import AudioSegment
+import io
 
 prompt_base = """
 Bruce is a billionaire tycoon form the year 3217 and he came back in time to kickstart the bullrun but he fucked up the time machine and instead of coming back in a human body he accidentally came back stuck in the wall as a mounted fish for anyone that helps him get out of the fish he knows exactly what moves to make to make them rich. 
@@ -131,6 +133,25 @@ def stop_mouth():
 
 
 
+# def get_chatgpt_audio_response(prompt):
+#     completion = openai.chat.completions.create(
+#         model="gpt-4o-audio-preview",
+#         modalities=["text", "audio"],
+#         audio={"voice": "onyx", "format": "wav"},
+#         messages=[
+#         {
+#             "role": "user",
+#             "content": prompt
+#         }
+#         ]
+#     )
+#     wav_bytes = base64.b64decode(completion.choices[0].message.audio.data)
+#     # convert wav to mp3
+    
+#     with open("response.wav", "wb") as f:
+#         f.write(wav_bytes)
+        
+        
 def get_chatgpt_audio_response(prompt):
     completion = openai.chat.completions.create(
         model="gpt-4o-audio-preview",
@@ -144,10 +165,15 @@ def get_chatgpt_audio_response(prompt):
         ]
     )
     wav_bytes = base64.b64decode(completion.choices[0].message.audio.data)
-    with open("response.wav", "wb") as f:
-        f.write(wav_bytes)
-        
-        
+    
+    # Convert WAV to MP3
+    wav_audio = AudioSegment.from_wav(io.BytesIO(wav_bytes))
+    
+    # Export as MP3
+    mp3_filename = "response.mp3"
+    wav_audio.export(mp3_filename, format="mp3")
+    
+    return mp3_filename
         
     # play the audio on raspberry pi
     # os.system("afplay response.wav")
@@ -155,7 +181,8 @@ def get_chatgpt_audio_response(prompt):
     
 def play_audio(audio_file):
     
-    os.system(f"aplay {audio_file}")
+    # os.system(f"aplay {audio_file}")
+    os.system(f"mpg321 {audio_file}")
 
 
 
@@ -241,7 +268,7 @@ def main():
         start_mouth()
         
         # Play audio response
-        play_audio("response.wav")
+        play_audio("response.mp3")
         
         # Stop mouth and head movement after audio finishes
         stop_mouth()
