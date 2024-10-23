@@ -3,4 +3,3 @@ RPi.GPIO
 python-dotenv
 requests
 pydub
-io
