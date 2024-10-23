@@ -44,118 +44,45 @@ GPIO.setup(MOTOR_BODY_ENB, GPIO.OUT)
 GPIO.setup(AUDIO_DETECTOR, GPIO.IN)
 
 
-
-
 def get_audio_duration(audio_file):
     audio = AudioSegment.from_wav(audio_file)
     return len(audio)  # duration in milliseconds
 
 
-# def move_mouth():
-#     # Enable motor (MOTOR_MOUTH_ENA)
-#     GPIO.output(MOTOR_MOUTH_ENA, GPIO.HIGH)
 
-#     # Set direction for the mouth movement
-#     GPIO.output(MOTOR_MOUTH_IN1, GPIO.HIGH)  # Forward
-#     GPIO.output(MOTOR_MOUTH_IN2, GPIO.LOW)   # Ensure opposite direction pin is LOW
-
-#     # Run for a short period of time
-#     time.sleep(1)
-
-#     # Stop the motor
-#     GPIO.output(MOTOR_MOUTH_ENA, GPIO.LOW)   # Disable motor
-#     GPIO.output(MOTOR_MOUTH_IN1, GPIO.LOW)   # Stop movement
-
-# def move_head():
-#     # Enable motor (MOTOR_BODY_ENB)
-#     GPIO.output(MOTOR_BODY_ENB, GPIO.HIGH)
-
-#     # Set direction for the head movement
-#     GPIO.output(MOTOR_BODY_IN3, GPIO.HIGH)  # Forward
-#     GPIO.output(MOTOR_BODY_IN4, GPIO.LOW)   # Ensure opposite direction pin is LOW
-
-#     # Run for a short period of time
-#     time.sleep(0.5)
-
-#     # Stop the motor
-#     GPIO.output(MOTOR_BODY_ENB, GPIO.LOW)   # Disable motor
-#     GPIO.output(MOTOR_BODY_IN3, GPIO.LOW)   # Stop movement
-
-# def move_tail():
-#     # Enable motor (MOTOR_BODY_ENB)
-#     GPIO.output(MOTOR_BODY_ENB, GPIO.HIGH)
-
-#     # Set direction for the tail movement
-#     GPIO.output(MOTOR_BODY_IN4, GPIO.HIGH)  # Forward
-#     GPIO.output(MOTOR_BODY_IN3, GPIO.LOW)   # Ensure opposite direction pin is LOW
-
-#     # Run for a short period of time
-#     time.sleep(0.5)
-
-#     # Stop the motor
-#     GPIO.output(MOTOR_BODY_ENB, GPIO.LOW)   # Disable motor
-#     GPIO.output(MOTOR_BODY_IN4, GPIO.LOW)   # Stop movement
-
-def play_audio_with_mouth_movement(audio_file, transcript):
+def play_audio_with_mouth_movement(audio_file):
     # Get the audio duration
     duration = get_audio_duration(audio_file)
     
-    words = transcript.split()
-    num_words = len(words)
-    time_per_word = duration / num_words  # Time for each word in milliseconds
-    
-    # Start audio playback in a separate thread
+    # Start playing audio in a separate thread to allow mouth movement in parallel
     def play_audio_thread():
         os.system(f"aplay {audio_file}")
     
+    # Start the audio playback thread
     audio_thread = threading.Thread(target=play_audio_thread)
     audio_thread.start()
-    
-    # Move the mouth based on each word's timing
-    for word in words:
-        start_mouth()  # Open mouth
-        time.sleep(time_per_word / 1000)  # Keep open for the duration of the word
-        stop_mouth()  # Close mouth
-        time.sleep(0.1)  # Short pause between words
-    
-    # Wait for the audio thread to finish
-    audio_thread.join()
-    stop_mouth()  # Ensure mouth is closed after audio
 
-
-# def play_audio_with_mouth_movement(audio_file):
-#     # Get the audio duration
-#     duration = get_audio_duration(audio_file)
+    # Simulate mouth movement during the entire duration of the audio
+    total_time = duration / 1000  # convert duration to seconds
+    elapsed_time = 0
     
-#     # Start playing audio in a separate thread to allow mouth movement in parallel
-#     def play_audio_thread():
-#         os.system(f"aplay {audio_file}")
-    
-#     # Start the audio playback thread
-#     audio_thread = threading.Thread(target=play_audio_thread)
-#     audio_thread.start()
-
-#     # Simulate mouth movement during the entire duration of the audio
-#     total_time = duration / 1000  # convert duration to seconds
-#     elapsed_time = 0
-    
-#     while elapsed_time < total_time:
+    while elapsed_time < total_time:
        
-#         # Open mouth
-#         start_mouth()
-#         time.sleep(0.5)  # Keep mouth open for 0.1 seconds
+        # Open mouth
+        start_mouth()
+        time.sleep(0.5)  # Keep mouth open for 0.1 seconds
         
-#         # Close mouth
-#         stop_mouth()
-#         time.sleep(0.5)  # Keep mouth closed for 0.1 seconds
+        # Close mouth
+        stop_mouth()
+        time.sleep(0.5)  # Keep mouth closed for 0.1 seconds
         
-#         elapsed_time += 0.2  # Total time for one cycle is 0.2 seconds
+        elapsed_time += 0.2  # Total time for one cycle is 0.2 seconds
 
-#     # Ensure mouth is closed after audio finishes
-#     stop_mouth()
+    # Ensure mouth is closed after audio finishes
+    stop_mouth()
     
-#     # Wait for audio thread to finish
-#     audio_thread.join()
+    # Wait for audio thread to finish
+    audio_thread.join()
 
 
 def move_head_forward():
@@ -198,28 +125,7 @@ def stop_mouth():
     GPIO.output(MOTOR_MOUTH_IN1, GPIO.LOW)
     GPIO.output(MOTOR_MOUTH_IN2, GPIO.LOW)
     
-
-
-
-# def get_chatgpt_audio_response(prompt):
-#     completion = openai.chat.completions.create(
-#         model="gpt-4o-audio-preview",
-#         modalities=["text", "audio"],
-#         audio={"voice": "onyx", "format": "wav"},
-#         messages=[
-#         {
-#             "role": "user",
-#             "content": prompt
-#         }
-#         ]
-#     )
-#     wav_bytes = base64.b64decode(completion.choices[0].message.audio.data)
-#     # convert wav to mp3
-    
-#     with open("response.wav", "wb") as f:
-#         f.write(wav_bytes)
-        
-        
+            
 def get_chatgpt_audio_response(prompt):
     completion = openai.chat.completions.create(
         model="gpt-4o-audio-preview",
@@ -241,15 +147,6 @@ def get_chatgpt_audio_response(prompt):
         f.write(wav_bytes)
 
     return transcript    
-    # # Export as MP3
-    # mp3_filename = "response.mp3"
-    # wav_audio.export(mp3_filename, format="mp3")
-    
-    # return mp3_filename
-        
-    # play the audio on raspberry pi
-    # os.system("afplay response.wav")
-    # os.system("mpg321 response.wav")
     
 def play_audio(audio_file):
     
@@ -284,78 +181,6 @@ def get_pumpfun_latest_comment():
         print("No comments found")
         return None
     
-    
-
-# def main():
-#     while True:
-        
-#         latest_comment = get_pumpfun_latest_comment()
-        
-        
-#         # Get response from ChatGPT
-#         response = get_chatgpt_audio_response(latest_comment['text'])
-        
-#                     # print(response)
-        
-#         # Move Billy Bass
-#         move_head()
-#         move_tail()
-        
-#         # Convert response to speech and move mouth
-#         # words = response.split()
-#         # for word in words:
-#             # move_mouth()
-#             # time.sleep(0.2)
-        
-#         # Speak the response
-#         # move mouth
-#         move_mouth()
-#         play_audio(response)
-
-# def main():
-#     while True:
-#         # Move head forward while getting the latest comment
-#         move_head_forward()
-#         latest_comment = get_pumpfun_latest_comment()
-        
-#         # Wait for a second, then move head back
-#         time.sleep(1)
-#         move_head_backward()
-#         time.sleep(0.5)
-#         stop_head()
-      
-#         prompt = f"{prompt_base} Reply to this comment: {latest_comment['text']}"
-#         # Get response from ChatGPT
-#         response = get_chatgpt_audio_response(prompt)
-        
-#         # Move tail back and forth
-#         for _ in range(3):  # Adjust the number of tail movements as needed
-#             move_tail_forward()
-#             time.sleep(0.5)
-#             move_tail_backward()
-#             time.sleep(0.5)
-#         stop_tail()
-        
-#         # Move head forward and start mouth movement
-#         move_head_forward()
-#         start_mouth()
-        
-#         # Play audio response
-#         play_audio("response.wav")
-        
-#         # Stop mouth and head movement after audio finishes
-#         stop_mouth()
-#         stop_head()
-        
-#         # Short pause before next iteration
-#         time.sleep(1)
-      
-# if __name__ == "__main__":
-#     try:
-#         main()
-#     finally:
-#         # print("Cleaning up GPIO")
-#         GPIO.cleanup()
 
 def main():
     while True:
@@ -385,7 +210,7 @@ def main():
         move_head_forward()
         
         # Play audio response and move mouth
-        play_audio_with_mouth_movement("response.wav", response)
+        play_audio_with_mouth_movement("response.wav")
         
         # Stop head movement after audio finishes
         stop_head()
