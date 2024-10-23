@@ -9,7 +9,6 @@ from pydub import AudioSegment
 import io
 import threading
 
-
 prompt_base = """
 Bruce is a billionaire tycoon form the year 3217 and he came back in time to kickstart the bullrun but he fucked up the time machine and instead of coming back in a human body he accidentally came back stuck in the wall as a mounted fish for anyone that helps him get out of the fish he knows exactly what moves to make to make them rich. 
 
@@ -43,6 +42,13 @@ GPIO.setup(MOTOR_BODY_IN3, GPIO.OUT)
 GPIO.setup(MOTOR_BODY_IN4, GPIO.OUT)
 GPIO.setup(MOTOR_BODY_ENB, GPIO.OUT)
 GPIO.setup(AUDIO_DETECTOR, GPIO.IN)
+
+
+
+
+def get_audio_duration(audio_file):
+    audio = AudioSegment.from_wav(audio_file)
+    return len(audio)  # duration in milliseconds
 
 
 # def move_mouth():
@@ -90,7 +96,36 @@ GPIO.setup(AUDIO_DETECTOR, GPIO.IN)
 #     GPIO.output(MOTOR_BODY_ENB, GPIO.LOW)   # Disable motor
 #     GPIO.output(MOTOR_BODY_IN4, GPIO.LOW)   # Stop movement
 
+def play_audio_with_mouth_movement(audio_file):
+    # Get the audio duration
+    duration = get_audio_duration(audio_file)
+    
+    # Start playing audio in a separate thread to allow mouth movement in parallel
+    def play_audio_thread():
+        os.system(f"aplay {audio_file}")
+    
+    # Start the audio playback thread
+    audio_thread = threading.Thread(target=play_audio_thread)
+    audio_thread.start()
 
+    # Move mouth while the audio is playing
+    start_mouth()
+    
+    # Simulate mouth movement during the entire duration of the audio
+    interval = 0.2  # move the mouth every 200 ms (adjust this interval as needed)
+    total_time = duration / 1000  # convert duration to seconds
+    elapsed_time = 0
+    
+    while elapsed_time < total_time:
+        # Move the mouth in small intervals
+        time.sleep(interval)
+        elapsed_time += interval
+
+    # Stop mouth movement after audio finishes
+    stop_mouth()
+    
+    # Wait for audio thread to finish
+    audio_thread.join()
 
 
 def move_head_forward():
@@ -132,11 +167,6 @@ def stop_mouth():
     GPIO.output(MOTOR_MOUTH_ENA, GPIO.LOW)
     GPIO.output(MOTOR_MOUTH_IN1, GPIO.LOW)
     GPIO.output(MOTOR_MOUTH_IN2, GPIO.LOW)
-    
-def move_mouth_up_and_down():
-    start_mouth()
-    time.sleep(1)
-    stop_mouth()
     
 
 
@@ -249,17 +279,57 @@ def get_pumpfun_latest_comment():
 #         move_mouth()
 #         play_audio(response)
 
+# def main():
+#     while True:
+#         # Move head forward while getting the latest comment
+#         move_head_forward()
+#         latest_comment = get_pumpfun_latest_comment()
+        
+#         # Wait for a second, then move head back
+#         time.sleep(1)
+#         move_head_backward()
+#         time.sleep(0.5)
+#         stop_head()
+      
+#         prompt = f"{prompt_base} Reply to this comment: {latest_comment['text']}"
+#         # Get response from ChatGPT
+#         response = get_chatgpt_audio_response(prompt)
+        
+#         # Move tail back and forth
+#         for _ in range(3):  # Adjust the number of tail movements as needed
+#             move_tail_forward()
+#             time.sleep(0.5)
+#             move_tail_backward()
+#             time.sleep(0.5)
+#         stop_tail()
+        
+#         # Move head forward and start mouth movement
+#         move_head_forward()
+#         start_mouth()
+        
+#         # Play audio response
+#         play_audio("response.wav")
+        
+#         # Stop mouth and head movement after audio finishes
+#         stop_mouth()
+#         stop_head()
+        
+#         # Short pause before next iteration
+#         time.sleep(1)
+      
+# if __name__ == "__main__":
+#     try:
+#         main()
+#     finally:
+#         # print("Cleaning up GPIO")
+#         GPIO.cleanup()
+
 def main():
     while True:
         # Move head forward while getting the latest comment
         move_head_forward()
         latest_comment = get_pumpfun_latest_comment()
         
-
-        def mouth_movement():
-            while audio_playing:
-                move_mouth_up_and_down()
-
         # Wait for a second, then move head back
         time.sleep(1)
         move_head_backward()
@@ -281,35 +351,18 @@ def main():
         # Move head forward and start mouth movement
         move_head_forward()
         
-        audio_playing = threading.Event()
+        # Play audio response and move mouth
+        play_audio_with_mouth_movement("response.wav")
         
-        start_mouth()
-        audio_playing.set()
-        mouth_thread = threading.Thread(target=mouth_movement)
-        mouth_thread.start()
-        
-        # # Move mouth up and down while audio is playing
-        
-        # start_mouth()
-        
-        # Play audio response
-        play_audio("response.wav")
-        
-                
-        # Stop the mouth movement
-        audio_playing.clear()
-        mouth_thread.join()
-        
-        # Stop mouth and head movement after audio finishes
-        stop_mouth()
+        # Stop head movement after audio finishes
         stop_head()
         
         # Short pause before next iteration
         time.sleep(1)
-      
+
 if __name__ == "__main__":
     try:
         main()
     finally:
-        # print("Cleaning up GPIO")
+        # Clean up GPIO
         GPIO.cleanup()
