@@ -96,39 +96,66 @@ def get_audio_duration(audio_file):
 #     GPIO.output(MOTOR_BODY_ENB, GPIO.LOW)   # Disable motor
 #     GPIO.output(MOTOR_BODY_IN4, GPIO.LOW)   # Stop movement
 
-def play_audio_with_mouth_movement(audio_file):
+def play_audio_with_mouth_movement(audio_file, transcript):
     # Get the audio duration
     duration = get_audio_duration(audio_file)
     
-    # Start playing audio in a separate thread to allow mouth movement in parallel
+    words = transcript.split()
+    num_words = len(words)
+    time_per_word = duration / num_words  # Time for each word in milliseconds
+    
+    # Start audio playback in a separate thread
     def play_audio_thread():
         os.system(f"aplay {audio_file}")
     
-    # Start the audio playback thread
     audio_thread = threading.Thread(target=play_audio_thread)
     audio_thread.start()
-
-    # Simulate mouth movement during the entire duration of the audio
-    total_time = duration / 1000  # convert duration to seconds
-    elapsed_time = 0
     
-    while elapsed_time < total_time:
-       
-        # Open mouth
-        start_mouth()
-        time.sleep(1)  # Keep mouth open for 0.1 seconds
-        
-        # Close mouth
-        stop_mouth()
-        time.sleep(1)  # Keep mouth closed for 0.1 seconds
-        
-        elapsed_time += 0.2  # Total time for one cycle is 0.2 seconds
-
-    # Ensure mouth is closed after audio finishes
-    stop_mouth()
+    # Move the mouth based on each word's timing
+    for word in words:
+        start_mouth()  # Open mouth
+        time.sleep(time_per_word / 1000)  # Keep open for the duration of the word
+        stop_mouth()  # Close mouth
+        time.sleep(0.1)  # Short pause between words
     
-    # Wait for audio thread to finish
+    # Wait for the audio thread to finish
     audio_thread.join()
+    stop_mouth()  # Ensure mouth is closed after audio
+
+
+# def play_audio_with_mouth_movement(audio_file):
+#     # Get the audio duration
+#     duration = get_audio_duration(audio_file)
+    
+#     # Start playing audio in a separate thread to allow mouth movement in parallel
+#     def play_audio_thread():
+#         os.system(f"aplay {audio_file}")
+    
+#     # Start the audio playback thread
+#     audio_thread = threading.Thread(target=play_audio_thread)
+#     audio_thread.start()
+
+#     # Simulate mouth movement during the entire duration of the audio
+#     total_time = duration / 1000  # convert duration to seconds
+#     elapsed_time = 0
+    
+#     while elapsed_time < total_time:
+       
+#         # Open mouth
+#         start_mouth()
+#         time.sleep(0.5)  # Keep mouth open for 0.1 seconds
+        
+#         # Close mouth
+#         stop_mouth()
+#         time.sleep(0.5)  # Keep mouth closed for 0.1 seconds
+        
+#         elapsed_time += 0.2  # Total time for one cycle is 0.2 seconds
+
+#     # Ensure mouth is closed after audio finishes
+#     stop_mouth()
+    
+#     # Wait for audio thread to finish
+#     audio_thread.join()
 
 
 def move_head_forward():
@@ -208,9 +235,12 @@ def get_chatgpt_audio_response(prompt):
    
     wav_bytes = base64.b64decode(completion.choices[0].message.audio.data)
     
+    transcript = completion.choices[0].message.audio.transcript
+    
     with open("response.wav", "wb") as f:
         f.write(wav_bytes)
-    
+
+    return transcript    
     # # Export as MP3
     # mp3_filename = "response.mp3"
     # wav_audio.export(mp3_filename, format="mp3")
@@ -355,7 +385,7 @@ def main():
         move_head_forward()
         
         # Play audio response and move mouth
-        play_audio_with_mouth_movement("response.wav")
+        play_audio_with_mouth_movement("response.wav", response)
         
         # Stop head movement after audio finishes
         stop_head()
