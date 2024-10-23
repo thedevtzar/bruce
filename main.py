@@ -7,6 +7,8 @@ import RPi.GPIO as GPIO
 import time
 from pydub import AudioSegment
 import io
+import threading
+
 
 prompt_base = """
 Bruce is a billionaire tycoon form the year 3217 and he came back in time to kickstart the bullrun but he fucked up the time machine and instead of coming back in a human body he accidentally came back stuck in the wall as a mounted fish for anyone that helps him get out of the fish he knows exactly what moves to make to make them rich. 
@@ -130,6 +132,12 @@ def stop_mouth():
     GPIO.output(MOTOR_MOUTH_ENA, GPIO.LOW)
     GPIO.output(MOTOR_MOUTH_IN1, GPIO.LOW)
     GPIO.output(MOTOR_MOUTH_IN2, GPIO.LOW)
+    
+def move_mouth_up_and_down():
+    start_mouth()
+    time.sleep(1)
+    stop_mouth()
+    
 
 
 
@@ -247,6 +255,11 @@ def main():
         move_head_forward()
         latest_comment = get_pumpfun_latest_comment()
         
+
+        def mouth_movement():
+            while audio_playing:
+                move_mouth_up_and_down()
+
         # Wait for a second, then move head back
         time.sleep(1)
         move_head_backward()
@@ -267,10 +280,25 @@ def main():
         
         # Move head forward and start mouth movement
         move_head_forward()
+        
+        audio_playing = threading.Event()
+        
         start_mouth()
+        audio_playing.set()
+        mouth_thread = threading.Thread(target=mouth_movement)
+        mouth_thread.start()
+        
+        # # Move mouth up and down while audio is playing
+        
+        # start_mouth()
         
         # Play audio response
         play_audio("response.wav")
+        
+                
+        # Stop the mouth movement
+        audio_playing.clear()
+        mouth_thread.join()
         
         # Stop mouth and head movement after audio finishes
         stop_mouth()
