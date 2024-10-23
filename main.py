@@ -147,11 +147,14 @@ def get_chatgpt_audio_response(prompt):
     with open("response.wav", "wb") as f:
         f.write(wav_bytes)
         
+        
+        
     # play the audio on raspberry pi
     # os.system("afplay response.wav")
     # os.system("mpg321 response.wav")
     
 def play_audio(audio_file):
+    
     os.system(f"mpg321 {audio_file}")
 
 
@@ -238,7 +241,7 @@ def main():
         start_mouth()
         
         # Play audio response
-        play_audio(response)
+        play_audio("response.wav")
         
         # Stop mouth and head movement after audio finishes
         stop_mouth()
