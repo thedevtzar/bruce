@@ -108,20 +108,25 @@ def play_audio_with_mouth_movement(audio_file):
     audio_thread = threading.Thread(target=play_audio_thread)
     audio_thread.start()
 
-    # Move mouth while the audio is playing
-    start_mouth()
-    
     # Simulate mouth movement during the entire duration of the audio
-    interval = 0.2  # move the mouth every 200 ms (adjust this interval as needed)
     total_time = duration / 1000  # convert duration to seconds
     elapsed_time = 0
     
     while elapsed_time < total_time:
-        # Move the mouth in small intervals
-        time.sleep(interval)
-        elapsed_time += interval
+        print("Open mouth")
+        print("Elapsed time: ", elapsed_time)
+        print("Total time: ", total_time)
+        # Open mouth
+        start_mouth()
+        time.sleep(0.1)  # Keep mouth open for 0.1 seconds
+        
+        # Close mouth
+        stop_mouth()
+        time.sleep(0.1)  # Keep mouth closed for 0.1 seconds
+        
+        elapsed_time += 0.2  # Total time for one cycle is 0.2 seconds
 
-    # Stop mouth movement after audio finishes
+    # Ensure mouth is closed after audio finishes
     stop_mouth()
     
     # Wait for audio thread to finish
