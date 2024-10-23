@@ -155,7 +155,7 @@ def get_chatgpt_audio_response(prompt):
     
 def play_audio(audio_file):
     
-    os.system(f"mpg321 {audio_file}")
+    os.system(f"aplay {audio_file}")
 
 
 
