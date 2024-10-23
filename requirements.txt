@@ -1,0 +1,4 @@
+openai
+RPi.GPIO
+python-dotenv
+requests
