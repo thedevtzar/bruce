@@ -7,6 +7,7 @@ import RPi.GPIO as GPIO
 import time
 from pydub import AudioSegment
 import io
+import threading
 
 prompt_base = """
 Bruce is a billionaire tycoon form the year 3217 and he came back in time to kickstart the bullrun but he fucked up the time machine and instead of coming back in a human body he accidentally came back stuck in the wall as a mounted fish for anyone that helps him get out of the fish he knows exactly what moves to make to make them rich. 
@@ -131,7 +132,14 @@ def stop_mouth():
     GPIO.output(MOTOR_MOUTH_IN1, GPIO.LOW)
     GPIO.output(MOTOR_MOUTH_IN2, GPIO.LOW)
 
-
+# Function to move the mouth in sync with the audio
+def mouth_movement(duration):
+    end_time = time.time() + duration
+    while time.time() < end_time:
+        start_mouth()
+        time.sleep(0.2)  # Keep the mouth open for 0.2 seconds (adjust as needed)
+        stop_mouth()
+        time.sleep(0.2)  # Keep the mouth closed for 0.2 seconds (adjust as needed)
 
 # def get_chatgpt_audio_response(prompt):
 #     completion = openai.chat.completions.create(
@@ -151,12 +159,12 @@ def stop_mouth():
 #     with open("response.wav", "wb") as f:
 #         f.write(wav_bytes)
         
-        
+# switched - format: wav :to: format: mp3 to relieve local processing of .wav to .mp3 and increased memory capacity for pi
 def get_chatgpt_audio_response(prompt):
     completion = openai.chat.completions.create(
         model="gpt-4o-audio-preview",
         modalities=["text", "audio"],
-        audio={"voice": "onyx", "format": "wav"},
+        audio={"voice": "onyx", "format": "mp3"},
         messages=[
         {
             "role": "user",
@@ -164,12 +172,16 @@ def get_chatgpt_audio_response(prompt):
         }
         ]
     )
+        # snippet added for measuring API response time - uncomment for debugging
+    end_time = time.time()  # End the timer
+    response_time = end_time - start_time
+    print(f"API call took {response_time:.2f} seconds")
    
-    wav_bytes = base64.b64decode(completion.choices[0].message.audio.data)
+    mp3_bytes = base64.b64decode(completion.choices[0].message.audio.data)
     
-    with open("response.wav", "wb") as f:
-        f.write(wav_bytes)
-    
+    with open("response.mp3", "wb") as f:
+        f.write(mp3_bytes)
+
     # # Export as MP3
     # mp3_filename = "response.mp3"
     # wav_audio.export(mp3_filename, format="mp3")
@@ -183,10 +195,13 @@ def get_chatgpt_audio_response(prompt):
 def play_audio(audio_file):
     
     # os.system(f"aplay {audio_file}")
-    # os.system(f"mpg321 {audio_file}")
-    os.system(f"aplay {audio_file}")
+     os.system(f"mpg321 {audio_file}")
+    # os.system(f"aplay {audio_file}")
 
-
+# Function to get the audio duration (if needed)
+def get_audio_duration(audio_file):
+    audio = AudioSegment.from_mp3(audio_file)
+    return audio.duration_seconds
 
 def get_pumpfun_latest_comment():
     pump_fun_base_url = 'https://frontend-api.pump.fun/replies/'
@@ -245,7 +260,14 @@ def main():
     while True:
         # Move head forward while getting the latest comment
         move_head_forward()
-        latest_comment = get_pumpfun_latest_comment()
+        try:
+            latest_comment = get_pumpfun_latest_comment()
+            if latest_comment is None:
+                print("No valid comments found, skipping.")
+                continue
+        except Exception as e:
+            print(f"Error fetching comments: {e}")
+            continue
         
         # Wait for a second, then move head back
         time.sleep(1)
@@ -265,15 +287,20 @@ def main():
             time.sleep(0.5)
         stop_tail()
         
-        # Move head forward and start mouth movement
-        move_head_forward()
-        start_mouth()
+        audio_file = "response.mp3"  # Example file, replace with your dynamic file
+        duration = get_audio_duration(audio_file)
+            
+        # Create threads for mouth movement and audio playback
+        mouth_thread = threading.Thread(target=mouth_movement, args=(duration,))
+        audio_thread = threading.Thread(target=play_audio, args=(audio_file,))
         
-        # Play audio response
-        play_audio("response.wav")
+        # Start both threads
+        mouth_thread.start()
+        audio_thread.start()
         
-        # Stop mouth and head movement after audio finishes
-        stop_mouth()
+        # Wait for both threads to finish
+        mouth_thread.join()
+        audio_thread.join()
         stop_head()
         
         # Short pause before next iteration
