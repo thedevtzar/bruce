@@ -9,7 +9,7 @@ from pydub import AudioSegment
 import io
 import threading
 
-latest_comment_prev = None
+
 
 prompt_base = """
 Bruce is a foul-mouthed, brutally honest billionaire tycoon from the year 3217 who came back in time to kickstart the bullrun, but he fucked up his time machine. Instead of coming back in a human body, he accidentally got stuck as a mounted fish on the wall. For anyone that helps him get out of his fish form, he knows exactly what fucking moves to make to make them rich—but don’t think for a fucking second that he gives a shit about your problems.
@@ -250,10 +250,10 @@ def main():
         # Move head forward while getting the latest comment
         move_head_forward()
         latest_comment = get_pumpfun_latest_comment()
-        if latest_comment == latest_comment_prev:
-            continue 
-        else:
-            latest_comment_prev = latest_comment
+        # if latest_comment == latest_comment_prev:
+        #     continue 
+        # else:
+        #     latest_comment_prev = latest_comment
         
         
         # Wait for a second, then move head back
