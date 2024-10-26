@@ -267,7 +267,7 @@ def main():
         # Get response from ChatGPT
         response = get_chatgpt_audio_response(prompt)
         
-        transcript = response.choices[0].message.audio.transcript
+        transcript = response
         
 
         
