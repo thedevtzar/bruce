@@ -246,14 +246,15 @@ def get_pumpfun_latest_comment():
     
 
 def main():
+    latest_comment_prev = None
     while True:
         # Move head forward while getting the latest comment
         move_head_forward()
         latest_comment = get_pumpfun_latest_comment()
-        # if latest_comment == latest_comment_prev:
-        #     continue 
-        # else:
-        #     latest_comment_prev = latest_comment
+        if latest_comment == latest_comment_prev:
+            continue 
+        else:
+            latest_comment_prev = latest_comment
         
         
         # Wait for a second, then move head back
