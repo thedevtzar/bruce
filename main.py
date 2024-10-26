@@ -246,15 +246,15 @@ def get_pumpfun_latest_comment():
     
 
 def main():
-    latest_comment_prev = None
+    
     while True:
         # Move head forward while getting the latest comment
         move_head_forward()
         latest_comment = get_pumpfun_latest_comment()
-        if latest_comment == latest_comment_prev:
-            continue 
-        else:
-            latest_comment_prev = latest_comment
+        # if latest_comment == latest_comment_prev:
+        #     continue 
+        # else:
+        #     latest_comment_prev = latest_comment
         
         
         # Wait for a second, then move head back
@@ -267,6 +267,10 @@ def main():
         # Get response from ChatGPT
         response = get_chatgpt_audio_response(prompt)
         
+        transcript = response.choices[0].message.audio.transcript
+        
+
+        
         # Move tail back and forth
         for _ in range(3):  # Adjust the number of tail movements as needed
             move_tail_forward()
@@ -278,8 +282,9 @@ def main():
         # Move head forward and start mouth movement
         move_head_forward()
         
-        # Play audio response and move mouth
-        play_audio_with_mouth_movement("response.wav")
+        # check if transcript is NA
+        if transcript != "NA" or transcript != "" or transcript != None or transcript != 'na':
+            play_audio_with_mouth_movement("response.wav")
         
         # Stop head movement after audio finishes
         stop_head()
