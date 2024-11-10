@@ -234,12 +234,13 @@ def get_pumpfun_latest_comment():
     
          
     # Get the latest comment, which is the last item in the list
-    comments = response.json()
-    print(comments)
+    comments_before = response.json()
+    comments = comments_before['replies']
+    # print(comments)
     if comments:
         # check if the comment.text is not empty, if empty, go to the previous one and so on
         for comment in reversed(comments):
-            print(comment)
+            # print(comment)
             if comment['text'] != '':
                 return comment
     else:
