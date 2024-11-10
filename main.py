@@ -221,7 +221,7 @@ def play_audio(audio_file):
 
 def get_pumpfun_latest_comment():
     pump_fun_base_url = 'https://frontend-api.pump.fun/replies/'
-    pump_fun_address = 'E11JvYny2ch8TJfnFB8PgnJLtjTUPWVzSvBtWYMNpump'
+    pump_fun_address = 'D9CVeCXEwnmimLVAk8LhdYXfZotGuiQLmfwK33bdpump'
     pump_fun_params = {
         'limit': '1000',
         'offset': '0'
