@@ -223,7 +223,7 @@ def get_pumpfun_latest_comment():
     pump_fun_base_url = 'https://frontend-api.pump.fun/replies/'
     pump_fun_address = 'E11JvYny2ch8TJfnFB8PgnJLtjTUPWVzSvBtWYMNpump'
     pump_fun_params = {
-        'limit': '10000',
+        'limit': '1000',
         'offset': '0'
     }
     
