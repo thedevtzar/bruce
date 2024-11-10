@@ -238,6 +238,7 @@ def get_pumpfun_latest_comment():
     if comments:
         # check if the comment.text is not empty, if empty, go to the previous one and so on
         for comment in reversed(comments):
+            print(comment)
             if comment['text'] != '':
                 return comment
     else:
